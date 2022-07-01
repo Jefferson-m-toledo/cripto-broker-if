@@ -40,20 +40,22 @@ def carrega_dados_mongo(diretorio:str):
     files = [diretorio+"/"+f for f in listdir(diretorio) if isfile(join(diretorio, f))]
     for file in files:
         df = pd.read_json(file)
-        df.columns = ['Data', 'Open', 'High', 'Low','Close', 'Volume']
-        df['Data'] = df['Data'].apply(convert_binance_time)
-        df['HML'] = df['High'] - df['Low']
-        df_dict = df.to_dict("records")
-        tempo_grafico = find_time(file)
-        par = find_pair(diretorio, tempo_grafico, file)
-        data_insert = {
-            "Candles": df_dict,
-            "Tempo": tempo_grafico,
-            "Par": par,
-            "_id": par + '_' + tempo_grafico
-        }
-        if tempo_grafico != '5m':
-            moedas.insert_one(data_insert)
+        if df.shape[1] == 6:
+            df.columns = ['Data', 'Open', 'High', 'Low','Close', 'Volume']
+            df['Data'] = df['Data'].apply(convert_binance_time)
+            df['HML'] = df['High'] - df['Low']
+            df_dict = df.to_dict("records")
+            tempo_grafico = find_time(file)
+            par = find_pair(diretorio, tempo_grafico, file)
+            data_insert = {
+                "Candles": df_dict,
+                "Tempo": tempo_grafico,
+                "Par": par,
+                "_id": par + '_' + tempo_grafico
+            }
+            if tempo_grafico != '5m':
+                moedas.insert_one(data_insert)
+
 
 
 
