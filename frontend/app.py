@@ -5,6 +5,7 @@ from helpers import encontra_objeto_banco, set_color, encontra_colecao, indicado
 from plotly.subplots import make_subplots
 import dash_bootstrap_components as dbc
 from dash_bootstrap_templates import load_figure_template
+from indicadores_visuais import *
 
 
 app = Dash(external_stylesheets=[dbc.themes.SLATE])
@@ -17,7 +18,6 @@ par = moedas.distinct('Par')
 
 templates = [
         "bootstrap",
-        "cyborg",
         "darkly",
     "slate"
     ]
@@ -30,7 +30,7 @@ app.layout = html.Div([
     html.Div([
         html.Div([
             html.Div(["Tema",
-            dcc.Dropdown(templates,id='theme', value='slate')]),
+            dcc.Dropdown(templates,id='theme', value='slate', clearable=False)]),
         html.Br(),
         html.Br(),html.Br(),
 html.Br(),
@@ -38,7 +38,8 @@ html.Br(),
             dcc.Dropdown(
                 tempos,
                 id='tempo',
-                value='1d'
+                value='1d',
+                clearable=False
             )
             ]),
         html.Br(),
@@ -46,14 +47,16 @@ html.Br(),
             dcc.Dropdown(
                 par,
                 id='par',
-                value='BTC_USDT'
+                value='BTC_USDT',
+                clearable=False
             )
         ]),
         html.Br(),
             html.Div(['Indicador: ',
                 dcc.Dropdown(
                     indicadores,
-                    id='indicadores')
+                    id='indicadores',
+                    value=None)
                 ]
 
             )
@@ -81,13 +84,21 @@ def display_candlestick(theme, tempo,par, indicadores):
                         vertical_spacing=0.3, subplot_titles=('Preço', 'Volume'),
                         row_width=[0.2, 0.9])
 
-    fig.add_trace(go.Candlestick(
-        x=df['Data'],
-        open=df['Open'],
-        high=df['High'],
-        low=df['Low'],
-        close=df['Close']
-    )  )
+    # adiciona candles
+    fig.add_trace(trace_candles(df), row=1, col=1  )
+
+    if indicadores == 'Média Móvel Simpes':
+        fig.add_trace(trace_sma10(df))
+        fig.add_trace(trace_sma50(df))
+
+    elif indicadores == 'Bandas de Bollinger':
+        fig.add_trace(trace_bb(df)[0])
+        fig.add_trace(trace_bb(df)[1])
+        fig.add_trace(trace_bb(df)[2])
+    elif indicadores == 'HML':
+        fig.add_trace(trace_hml(df))
+
+
 
     fig.add_trace(go.Bar(x=df['Data'],
                          y=df['Volume'],

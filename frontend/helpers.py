@@ -40,6 +40,7 @@ indicadores = ['Média Móvel Simpes',
                'On-Balance Volume - OBV',
                 'Bandas de Bollinger',
                 'Relative Strength Index - IFR',
-                'MACD'
+                'MACD',
+               'HML'
                ]
 

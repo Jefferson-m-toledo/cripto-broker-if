@@ -49,6 +49,9 @@ def carrega_dados_mongo(diretorio:str):
             df['SMA10'] = df['Close'].rolling(window=10, min_periods=1).mean()
             df['SMA50'] = df['Close'].rolling(window=50, min_periods=1).mean()
             # bandas de bollinger
+            df['sma'] = df['Close'].rolling(30).mean()
+            df['bb_superior'] = df['sma'] + ((df['Close'].rolling(30).std(ddof=0)) * 2)
+            df['bb_inferior'] = df['sma'] - ((df['Close'].rolling(30).std(ddof=0)) * 2)
 
 
             df_dict = df.to_dict("records")
