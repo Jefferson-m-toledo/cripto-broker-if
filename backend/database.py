@@ -44,6 +44,13 @@ def carrega_dados_mongo(diretorio:str):
             df.columns = ['Data', 'Open', 'High', 'Low','Close', 'Volume']
             df['Data'] = df['Data'].apply(convert_binance_time)
             df['HML'] = df['High'] - df['Low']
+            # indicadores
+            # médias móveis simples
+            df['SMA10'] = df['Close'].rolling(window=10, min_periods=1).mean()
+            df['SMA50'] = df['Close'].rolling(window=50, min_periods=1).mean()
+            # bandas de bollinger
+
+
             df_dict = df.to_dict("records")
             tempo_grafico = find_time(file)
             par = find_pair(diretorio, tempo_grafico, file)
@@ -55,8 +62,3 @@ def carrega_dados_mongo(diretorio:str):
             }
             if tempo_grafico != '5m':
                 moedas.insert_one(data_insert)
-
-
-
-
-
