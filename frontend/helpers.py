@@ -35,7 +35,7 @@ def set_color(x):
 
 
 
-indicadores = ['Média Móvel Simpes',
+indicadores = ['Média Móvel Simples',
                'Média móvel exponencial',
                'On-Balance Volume - OBV',
                 'Bandas de Bollinger',

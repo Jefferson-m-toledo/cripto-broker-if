@@ -5,6 +5,9 @@ from os import listdir
 from os.path import isfile, join
 import datetime
 import re
+from indicadores_back import calcula_indicadores
+from ta.trend import EMAIndicator, MACD
+from ta.volume import OnBalanceVolumeIndicator
 import gridfs
 
 def convert_binance_time(time):
@@ -30,6 +33,11 @@ def find_pair(diretorio, time,s):
 
 
 def carrega_dados_mongo(diretorio:str):
+    """
+    Carrega dados no Mongodb
+    :param diretorio: diretório para o qual foram extraídos dados
+    :return:
+    """
     # conexão com mongo
     client = MongoClient("mongodb://localhost:27017/")
     # cria database
@@ -41,27 +49,25 @@ def carrega_dados_mongo(diretorio:str):
     for file in files:
         df = pd.read_json(file)
         if df.shape[1] == 6:
+            #nomeia colunas
             df.columns = ['Data', 'Open', 'High', 'Low','Close', 'Volume']
+            # converte coluna de data
             df['Data'] = df['Data'].apply(convert_binance_time)
+            # calcula HML
             df['HML'] = df['High'] - df['Low']
             # indicadores
-            # médias móveis simples
-            df['SMA10'] = df['Close'].rolling(window=10, min_periods=1).mean()
-            df['SMA50'] = df['Close'].rolling(window=50, min_periods=1).mean()
-            # bandas de bollinger
-            df['sma'] = df['Close'].rolling(30).mean()
-            df['bb_superior'] = df['sma'] + ((df['Close'].rolling(30).std(ddof=0)) * 2)
-            df['bb_inferior'] = df['sma'] - ((df['Close'].rolling(30).std(ddof=0)) * 2)
-
-
+            df = calcula_indicadores(df)
+            # transforma dados para dicionário
             df_dict = df.to_dict("records")
             tempo_grafico = find_time(file)
             par = find_pair(diretorio, tempo_grafico, file)
+            # insert no banco
             data_insert = {
                 "Candles": df_dict,
                 "Tempo": tempo_grafico,
                 "Par": par,
                 "_id": par + '_' + tempo_grafico
             }
+
             if tempo_grafico != '5m':
                 moedas.insert_one(data_insert)
