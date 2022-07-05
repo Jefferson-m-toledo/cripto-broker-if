@@ -95,10 +95,13 @@ def carrega_dados_mongo_collection(diretorio: str):
     # lista de arquivos
     files = [diretorio + "/" + f for f in listdir(diretorio) if isfile(join(diretorio, f))]
     for file in files:
-        tempo_grafico = find_time(file)
-        if tempo_grafico != '5m':
-            df = pd.read_json(file)
-            if df.shape[1] == 6:
+
+        df = pd.read_json(file)
+
+        if df.shape[1] == 6:
+            tempo_grafico = find_time(file)
+            if tempo_grafico != '5m':
+
                 # nomeia colunas
                 df.columns = ['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']
                 # converte coluna de data
