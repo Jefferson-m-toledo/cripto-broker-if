@@ -9,6 +9,12 @@ from indicadores_back import calcula_indicadores
 from ta.trend import EMAIndicator, MACD
 from ta.volume import OnBalanceVolumeIndicator
 import gridfs
+import itertools
+
+
+def zip_with_scalar(lista, elemento1, elemento2):
+    return list(zip(lista, itertools.repeat(elemento1), itertools.repeat(elemento2)))
+
 
 def convert_binance_time(time):
     """
@@ -16,7 +22,7 @@ def convert_binance_time(time):
     :param time:
     :return:
     """
-    return datetime.datetime.fromtimestamp(time/1000)
+    return datetime.datetime.fromtimestamp(time / 1000)
 
 
 def find_time(s):
@@ -25,14 +31,15 @@ def find_time(s):
     result = re.search('T-(.*).json', s)
     return result.group(1)
 
-def find_pair(diretorio, time,s):
+
+def find_pair(diretorio, time, s):
     """Encontra tempo gráfico
     """
     result = re.search(f'{diretorio}/(.*)-{time}.json', s)
     return result.group(1)
 
 
-def carrega_dados_mongo(diretorio:str):
+def carrega_dados_mongo(diretorio: str):
     """
     Carrega dados no Mongodb
     :param diretorio: diretório para o qual foram extraídos dados
@@ -45,12 +52,12 @@ def carrega_dados_mongo(diretorio:str):
     # cria coleção
     moedas = db["moedas"]
     # lista de arquivos
-    files = [diretorio+"/"+f for f in listdir(diretorio) if isfile(join(diretorio, f))]
+    files = [diretorio + "/" + f for f in listdir(diretorio) if isfile(join(diretorio, f))]
     for file in files:
         df = pd.read_json(file)
         if df.shape[1] == 6:
-            #nomeia colunas
-            df.columns = ['Data', 'Open', 'High', 'Low','Close', 'Volume']
+            # nomeia colunas
+            df.columns = ['Data', 'Open', 'High', 'Low', 'Close', 'Volume']
             # converte coluna de data
             df['Data'] = df['Data'].apply(convert_binance_time)
             # calcula HML
@@ -71,3 +78,41 @@ def carrega_dados_mongo(diretorio:str):
 
             if tempo_grafico != '5m':
                 moedas.insert_one(data_insert)
+
+
+def carrega_dados_mongo_collection(diretorio: str):
+    """
+    Carrega dados no Mongodb
+    :param diretorio: diretório para o qual foram extraídos dados
+    :return:
+    """
+    # conexão com mongo
+    client = MongoClient("mongodb://localhost:27017/")
+    # cria database
+    db = client["cripto_documents"]
+    # cria coleção
+    moedas = db["moedas"]
+    # lista de arquivos
+    files = [diretorio + "/" + f for f in listdir(diretorio) if isfile(join(diretorio, f))]
+    for file in files:
+        tempo_grafico = find_time(file)
+        if tempo_grafico != '5m':
+            df = pd.read_json(file)
+            if df.shape[1] == 6:
+                # nomeia colunas
+                df.columns = ['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']
+                # converte coluna de data
+                df['Data'] = df['Datetime'].apply(convert_binance_time)
+                # calcula HML
+                df['HML'] = df['High'] - df['Low']
+                # indicadores
+                df = calcula_indicadores(df)
+
+                par = find_pair(diretorio, tempo_grafico, file)
+                # insert no banco
+
+                df_list = df.to_dict("record")
+                df_insert = [{"Candle": element[0],
+                              "Par": element[1],
+                              "Tempo": element[2]} for element in zip_with_scalar(df_list, par, tempo_grafico)]
+                moedas.insert_many(df_insert)
