@@ -23,7 +23,7 @@ templates = [
 load_figure_template(templates)
 
 app.layout = html.Div([
-    html.H2('Cripto Broker', style={'textAlign': 'center'}),
+    html.H2('Crypto Broker', style={'textAlign': 'center'}),
     html.Br(),
     html.Div([
         html.Div([
@@ -77,13 +77,14 @@ app.layout = html.Div([
 def display_candlestick(theme, tempo, par, indicadores):
     df = encontra_objeto_banco(index=f'{par}_{tempo}')
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                        vertical_spacing=0.3, subplot_titles=('Preço', 'Volume'),
+                        vertical_spacing=0.3, subplot_titles=('Preço',
+                                                              'Volume' if indicadores not in ('MACD','Relative Strength Index - IFR') else ''),
                         row_width=[0.2, 0.9])
 
     # adiciona candles
     fig.add_trace(trace_candles(df), row=1, col=1)
     # adiciona volume
-    if indicadores != 'MACD':
+    if indicadores != 'MACD' and indicadores != 'Relative Strength Index - IFR':
         fig.add_trace(trace_volume(df),row=2, col=1 )
     # adiciona médias móveis simples
     if indicadores == 'Média Móvel Simples':
@@ -108,6 +109,12 @@ def display_candlestick(theme, tempo, par, indicadores):
     elif indicadores == 'MACD':
         fig.add_trace(trace_macd(df)[0], row=2, col=1)
         fig.add_trace(trace_macd(df)[1], row=2, col=1)
+    # RSI
+    elif indicadores == 'Relative Strength Index - IFR':
+        fig.add_trace(trace_rsi(df), row=2, col=1)
+        fig.add_hrect(
+            y0=60, y1=100, line_width=0,
+            fillcolor="blue", opacity=0.3, row=2, col=1)
 
     # fig.add_trace(go.Bar(x=df['Data'],
     #                      y=df['Volume'],

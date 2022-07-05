@@ -126,3 +126,13 @@ def trace_macd(df: pd.DataFrame):
                             line={'color': 'red', 'width': 1})
 
     return macd, macd_sinal
+
+
+def trace_rsi(df: pd.DataFrame):
+    rsi = go.Scatter(x=df['Data'],
+                     y=df['RSI'],
+                     mode='lines',
+                     name='RSI',
+                     line={'color': 'red', 'width': 1})
+
+    return rsi

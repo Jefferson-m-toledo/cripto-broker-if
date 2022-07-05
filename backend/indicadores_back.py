@@ -1,6 +1,7 @@
 import pandas as pd
 from ta.trend import EMAIndicator, MACD
 from ta.volume import OnBalanceVolumeIndicator
+from ta.momentum import RSIIndicator
 
 def calcula_indicadores(df:pd.DataFrame):
     df['SMA10'] = df['Close'].rolling(window=10, min_periods=1).mean()
@@ -17,4 +18,6 @@ def calcula_indicadores(df:pd.DataFrame):
     # MACD
     df['macd_sinal'] = MACD(close=df['Close']).macd_signal()
     df['macd'] = MACD(close=df['Close']).macd()
+    # RSI
+    df['RSI'] = RSIIndicator(close=df['Close']).rsi()
     return df
