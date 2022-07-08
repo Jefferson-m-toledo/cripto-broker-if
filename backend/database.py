@@ -79,7 +79,6 @@ def carrega_dados_mongo(diretorio: str):
             if tempo_grafico != '5m':
                 moedas.insert_one(data_insert)
 
-
 def carrega_dados_mongo_collection(diretorio: str):
     """
     Carrega dados no Mongodb
@@ -97,7 +96,6 @@ def carrega_dados_mongo_collection(diretorio: str):
     for file in files:
 
         df = pd.read_json(file)
-
         if df.shape[1] == 6:
             tempo_grafico = find_time(file)
             if tempo_grafico != '5m':
@@ -115,7 +113,50 @@ def carrega_dados_mongo_collection(diretorio: str):
                 # insert no banco
 
                 df_list = df.to_dict("record")
-                df_insert = [{"Candle": element[0],
-                              "Par": element[1],
-                              "Tempo": element[2]} for element in zip_with_scalar(df_list, par, tempo_grafico)]
+                df_insert = [{
+                             "Candle": element[0],
+                              "Pares": element[1],
+                              "Tempo": element[2]} for element in zip_with_scalar(df_list,
+                                                                                  {'par':par.split('_'),
+                                                                                   'inicio':df['Data'].min()},
+                                                                                  {'tempo':tempo_grafico})]
                 moedas.insert_many(df_insert)
+
+# def carrega_dados_mongo_collection(diretorio: str):
+#     """
+#     Carrega dados no Mongodb
+#     :param diretorio: diretório para o qual foram extraídos dados
+#     :return:
+#     """
+#     # conexão com mongo
+#     client = MongoClient("mongodb://localhost:27017/")
+#     # cria database
+#     db = client["cripto_documents"]
+#     # cria coleção
+#     moedas = db["moedas"]
+#     # lista de arquivos
+#     files = [diretorio + "/" + f for f in listdir(diretorio) if isfile(join(diretorio, f))]
+#     for file in files:
+#
+#         df = pd.read_json(file)
+#         if df.shape[1] == 6:
+#             tempo_grafico = find_time(file)
+#             if tempo_grafico != '5m':
+#
+#                 # nomeia colunas
+#                 df.columns = ['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']
+#                 # converte coluna de data
+#                 df['Data'] = df['Datetime'].apply(convert_binance_time)
+#                 # calcula HML
+#                 df['HML'] = df['High'] - df['Low']
+#                 # indicadores
+#                 df = calcula_indicadores(df)
+#
+#                 par = find_pair(diretorio, tempo_grafico, file)
+#                 # insert no banco
+#
+#                 df_list = df.to_dict("record")
+#                 df_insert = [{"Candle": element[0],
+#                               "Par": element[1],
+#                               "Tempo": element[2]} for element in zip_with_scalar(df_list, par, tempo_grafico)]
+#                 moedas.insert_many(df_insert)

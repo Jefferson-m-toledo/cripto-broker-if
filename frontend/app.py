@@ -132,4 +132,4 @@ def display_candlestick(theme, tempo, par, indicadores):
     return fig
 
 
-app.run_server(debug=True)
+app.run_server(debug=False)
