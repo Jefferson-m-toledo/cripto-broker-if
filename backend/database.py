@@ -99,7 +99,6 @@ def carrega_dados_mongo_collection(diretorio: str):
         if df.shape[1] == 6:
             tempo_grafico = find_time(file)
             if tempo_grafico != '5m':
-
                 # nomeia colunas
                 df.columns = ['Datetime', 'Open', 'High', 'Low', 'Close', 'Volume']
                 # converte coluna de data
@@ -110,8 +109,7 @@ def carrega_dados_mongo_collection(diretorio: str):
                 df = calcula_indicadores(df)
 
                 par = find_pair(diretorio, tempo_grafico, file)
-                # insert no banco
-
+                # cria dicionário a partir dataframe
                 df_list = df.to_dict("record")
                 df_insert = [{
                              "Candle": element[0],
@@ -119,7 +117,8 @@ def carrega_dados_mongo_collection(diretorio: str):
                               "Tempo": element[2]} for element in zip_with_scalar(df_list,
                                                                                   {'par':par.split('_'),
                                                                                    'inicio':df['Data'].min()},
-                                                                                  {'tempo':tempo_grafico})]
+                                                                                   {'tempo':tempo_grafico})]
+                # insere dados no mongo
                 moedas.insert_many(df_insert)
 
 # def carrega_dados_mongo_collection(diretorio: str):

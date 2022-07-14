@@ -10,7 +10,7 @@ def trace_candles(df: pd.DataFrame):
         high=df['High'],
         low=df['Low'],
         close=df['Close'],
-        name=None
+        name='Candles'
     )
     return candles
 

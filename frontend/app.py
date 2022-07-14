@@ -76,8 +76,9 @@ app.layout = html.Div([
 )
 def display_candlestick(theme, tempo, par, indicadores):
     df = encontra_objeto_banco(index=f'{par}_{tempo}')
+    media = df['Close'].mean()
     fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
-                        vertical_spacing=0.3, subplot_titles=('Preço',
+                        vertical_spacing=0.3, subplot_titles=(f'Preço (valor médio no período: {media:0.2f})',
                                                               'Volume' if indicadores not in ('MACD','Relative Strength Index - IFR') else ''),
                         row_width=[0.2, 0.9])
 
@@ -132,4 +133,4 @@ def display_candlestick(theme, tempo, par, indicadores):
     return fig
 
 
-app.run_server(debug=False)
+app.run_server(debug=True)

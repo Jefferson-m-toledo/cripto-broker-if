@@ -4,6 +4,7 @@ from ta.volume import OnBalanceVolumeIndicator
 from ta.momentum import RSIIndicator
 
 def calcula_indicadores(df:pd.DataFrame):
+    # médias móveis
     df['SMA10'] = df['Close'].rolling(window=10, min_periods=1).mean()
     df['SMA50'] = df['Close'].rolling(window=50, min_periods=1).mean()
     # bandas de bollinger
